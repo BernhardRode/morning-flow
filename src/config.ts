@@ -4,8 +4,13 @@ export const TIMING = {
   prep: 5,
   /** Rest between moves. */
   transition: 5,
-  /** How often the session clock is sampled, in milliseconds. */
-  tickMs: 60,
+  /**
+   * How often the session clock is sampled, in milliseconds. This paces the
+   * on-screen counter only — the click is scheduled on the audio clock.
+   */
+  tickMs: 33,
+  /** How far ahead clicks are handed to the audio clock, in seconds. */
+  clickLookahead: 0.3,
 } as const;
 
 /**

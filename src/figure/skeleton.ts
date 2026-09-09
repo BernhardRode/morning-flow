@@ -3,14 +3,14 @@ import {
   Object3D, SphereGeometry,
 } from "three";
 
-const BONE = 0xebe3d4;
-const JOINT = 0xd8b15c;
-const SKIN = 0xdcd2c0;
+/** Warm skin, dark shorts and shoes — the app's own palette, worn. */
+const SKIN = 0xe2d4bf;
+const CLOTH = 0x1b2e34;
 const FLOOR = 0x1a2b31;
 
 /**
- * The joints a pose can rotate. Segments hang downwards from their joint, so a
- * rotation of 0 is the neutral standing pose.
+ * The joints a pose can rotate. Segments hang downwards from their joint, so
+ * a rotation of 0 is the neutral standing pose.
  */
 export interface Rig {
   /** Moves the whole figure in world space. */
@@ -34,19 +34,22 @@ interface Segment {
   end: Object3D;
 }
 
-/** A bone: a tapered cylinder hanging from a ball joint. */
-function segment(length: number, radius: number): Segment {
+const skin = new MeshStandardMaterial({ color: SKIN, roughness: 0.72, metalness: 0 });
+const cloth = new MeshStandardMaterial({ color: CLOTH, roughness: 0.95, metalness: 0 });
+
+/**
+ * A limb segment: a tapered shaft with a rounded cap at each end, all in one
+ * colour, so joints read as flesh rather than as separate balls.
+ */
+function segment(length: number, rTop: number, rBottom: number, material = skin): Segment {
   const node = new Group();
-  const bone = new Mesh(
-    new CylinderGeometry(radius * 0.82, radius, length, 14),
-    new MeshStandardMaterial({ color: BONE, roughness: 0.8, metalness: 0.02 }),
-  );
-  bone.position.y = -length / 2;
-  node.add(bone);
-  node.add(new Mesh(
-    new SphereGeometry(radius * 1.12, 14, 12),
-    new MeshStandardMaterial({ color: JOINT, roughness: 0.55, metalness: 0.15 }),
-  ));
+  const shaft = new Mesh(new CylinderGeometry(rTop, rBottom, length, 18, 1, true), material);
+  shaft.position.y = -length / 2;
+  node.add(shaft);
+  node.add(new Mesh(new SphereGeometry(rTop, 18, 14), material));
+  const tip = new Mesh(new SphereGeometry(rBottom, 18, 14), material);
+  tip.position.y = -length;
+  node.add(tip);
   const end = new Object3D();
   end.position.y = -length;
   node.add(end);
@@ -59,33 +62,39 @@ function anchor(x: number, y: number, z: number): Object3D {
   return o;
 }
 
-function flesh(color = SKIN, roughness = 0.85): MeshStandardMaterial {
-  return new MeshStandardMaterial({ color, roughness });
+function ellipsoid(rx: number, ry: number, rz: number, material = skin): Mesh {
+  const m = new Mesh(new SphereGeometry(1, 24, 18), material);
+  m.scale.set(rx, ry, rz);
+  return m;
 }
 
 /** Left arm sits at +X, right arm at -X. */
 function buildArm(chest: Object3D, sign: 1 | -1): { arm: Group; elbow: Group } {
-  const shoulder = anchor(sign * 0.185, 0.235, 0);
+  const shoulder = anchor(sign * 0.19, 0.25, 0);
   chest.add(shoulder);
-  const upper = segment(0.29, 0.052);
+  const upper = segment(0.29, 0.052, 0.044);
   shoulder.add(upper.node);
-  const fore = segment(0.27, 0.045);
+  const fore = segment(0.26, 0.042, 0.034);
   upper.end.add(fore.node);
-  const hand = new Mesh(new SphereGeometry(0.055, 12, 10), flesh());
-  hand.scale.set(0.8, 1.1, 0.55);
+  const hand = ellipsoid(0.042, 0.085, 0.024);
+  hand.position.y = -0.055;
   fore.end.add(hand);
   return { arm: upper.node, elbow: fore.node };
 }
 
 function buildLeg(root: Object3D, sign: 1 | -1): { hip: Group; knee: Group; foot: Object3D } {
-  const socket = anchor(sign * 0.105, -0.06, 0);
+  const socket = anchor(sign * 0.095, -0.05, 0);
   root.add(socket);
-  const thigh = segment(0.44, 0.075);
+  const thigh = segment(0.44, 0.08, 0.062);
   socket.add(thigh.node);
-  const shin = segment(0.42, 0.058);
+  // Shorts: a cloth sleeve over the top of the thigh that turns with it.
+  const shortsLeg = new Mesh(new CylinderGeometry(0.098, 0.088, 0.17, 18, 1, true), cloth);
+  shortsLeg.position.y = -0.085;
+  thigh.node.add(shortsLeg);
+  const shin = segment(0.42, 0.058, 0.04);
   thigh.end.add(shin.node);
-  const foot = new Mesh(new BoxGeometry(0.09, 0.05, 0.19), flesh(SKIN, 0.9));
-  foot.position.set(0, -0.025, 0.055);
+  const foot = new Mesh(new BoxGeometry(0.085, 0.055, 0.24), cloth);
+  foot.position.set(0, -0.0275, 0.06);
   shin.end.add(foot);
   return { hip: thigh.node, knee: shin.node, foot };
 }
@@ -101,34 +110,49 @@ export function buildFloor(): Mesh {
   return floor;
 }
 
+/** A figure of about 1.8m, in roughly seven-and-a-half heads. */
 export function buildRig(): Rig {
   const carrier = new Object3D();
   const root = anchor(0, 0, 0);
   carrier.add(root);
 
-  const pelvis = new Mesh(new SphereGeometry(0.13, 16, 12), flesh());
-  pelvis.scale.set(1.25, 0.8, 0.9);
+  // Pelvis, in shorts.
+  const pelvis = ellipsoid(0.165, 0.11, 0.115, cloth);
+  pelvis.position.y = -0.01;
   root.add(pelvis);
 
-  const spine = anchor(0, 0.05, 0);
+  // Abdomen: narrow at the waist, filling out towards the ribs.
+  const spine = anchor(0, 0.07, 0);
   root.add(spine);
-  const lumbar = new Mesh(new CylinderGeometry(0.115, 0.135, 0.24, 14), flesh());
-  lumbar.position.y = 0.12;
-  lumbar.scale.z = 0.78;
-  spine.add(lumbar);
+  const abdomen = new Mesh(new CylinderGeometry(0.125, 0.115, 0.22, 20, 1, true), skin);
+  abdomen.position.y = 0.11;
+  abdomen.scale.z = 0.8;
+  spine.add(abdomen);
 
-  const chest = anchor(0, 0.26, 0);
+  // Ribcage: widest at the shoulders, flattened front to back.
+  const chest = anchor(0, 0.22, 0);
   spine.add(chest);
-  const ribs = new Mesh(new CylinderGeometry(0.155, 0.12, 0.26, 14), flesh());
-  ribs.position.y = 0.13;
-  ribs.scale.z = 0.72;
+  const ribs = new Mesh(new CylinderGeometry(0.165, 0.13, 0.28, 20, 1, true), skin);
+  ribs.position.y = 0.14;
+  ribs.scale.z = 0.74;
   chest.add(ribs);
+  const cap = ellipsoid(0.165, 0.06, 0.122);
+  cap.position.y = 0.28;
+  chest.add(cap);
+  for (const sign of [1, -1] as const) {
+    const shoulder = new Mesh(new SphereGeometry(0.062, 18, 14), skin);
+    shoulder.position.set(sign * 0.19, 0.25, 0);
+    chest.add(shoulder);
+  }
 
-  const neck = anchor(0, 0.28, 0);
+  // Neck and head.
+  const neck = anchor(0, 0.3, 0);
   chest.add(neck);
-  const head = new Mesh(new SphereGeometry(0.115, 18, 14), flesh(SKIN, 0.8));
-  head.position.y = 0.11;
-  head.scale.set(0.92, 1.12, 1);
+  const throat = new Mesh(new CylinderGeometry(0.05, 0.056, 0.1, 16, 1, true), skin);
+  throat.position.y = 0.04;
+  neck.add(throat);
+  const head = ellipsoid(0.1, 0.125, 0.112);
+  head.position.set(0, 0.2, 0.012);
   neck.add(head);
 
   const left = buildArm(chest, 1);

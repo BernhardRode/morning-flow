@@ -72,10 +72,36 @@ export class Session extends Emitter<SessionEvents> {
     return ((this.paused ? this.pausedAt : performance.now()) - this.phaseStart) / 1000;
   }
 
-  /** Where we are within the current rep, 0..1 — drives the demonstrator. */
-  repPhase(): number {
-    const { move } = this.phase;
-    return (this.elapsed() % move.secPerRep) / move.secPerRep;
+  /**
+   * Time into the current move measured in reps — 2.5 is halfway through the
+   * third rep. Unbounded, so an animation that alternates sides can tell odd
+   * reps from even ones. Drives the demonstrator.
+   */
+  repTime(): number {
+    return this.elapsed() / this.phase.move.secPerRep;
+  }
+
+  /**
+   * Reps that will begin within the next `seconds`, with the page-clock time
+   * each lands on, so the click can be handed to the audio clock ahead of
+   * time. Empty while resting or paused.
+   */
+  upcomingReps(seconds: number): Array<{ rep: number; at: number; spoken: boolean; last: boolean }> {
+    const phase = this.phase;
+    if (phase.kind !== "work" || this.paused) return [];
+    const { move } = phase;
+    const now = performance.now();
+    const horizon = now + seconds * 1000;
+    const out: Array<{ rep: number; at: number; spoken: boolean; last: boolean }> = [];
+    // Rep k (1-based) begins (k-1) paces after the move started.
+    let rep = Math.floor((now - this.phaseStart) / (move.secPerRep * 1000)) + 1;
+    for (; rep <= move.reps; rep++) {
+      const at = this.phaseStart + (rep - 1) * move.secPerRep * 1000;
+      if (at > horizon) break;
+      if (at < now - 1) continue; // already begun
+      out.push({ rep, at, spoken: rep % move.sayEvery === 0, last: rep === move.reps });
+    }
+    return out;
   }
 
   start(): void {

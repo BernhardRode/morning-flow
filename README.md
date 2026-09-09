@@ -37,7 +37,8 @@ index.html            markup only — the shell every screen lives in
 public/               generated icons, copied to the site root
 scripts/
   generate-icons.mjs  renders the whole icon set from one SVG
-  pose-range.ts       measures how far the figure travels per rep, in cm
+  pose-range.ts       measures how far the figure travels per move, and that each loop closes
+  run.mjs             runs a script through Vite's loader, so it resolves imports like the app
 src/
   main.ts             wiring: builds the screens, owns the session lifecycle
   config.ts           session timing and the sky gradient
@@ -59,8 +60,9 @@ src/
   figure/
     demonstrator.ts   the interface the screens use, plus the lazy loader
     figure.ts         the three.js renderer and animation loop
-    skeleton.ts       builds the figure's rig
-    poses.ts          one function per movement: joint angles across a rep
+    skeleton.ts       builds the figure — a body in shorts, about 1.8 m
+    pose.ts           poses, keyframe animations and the spline between them
+    presets.ts        stances and arm positions to build keyframes from
   ui/
     screens.ts        which screen is visible
     home.ts train.ts done.ts
@@ -71,27 +73,47 @@ The session engine and the UI are separate: `Session` runs the clock and reports
 
 ## Editing the routine
 
-Everything about what you do is in `src/data/routine.ts` — one flat list of moves, in the order you do them:
+Everything about what you do is in `src/data/routine.ts` — one flat list of moves, in the order you do them. Adding a move means adding an entry; removing one means deleting it. Nothing else knows how many there are or what they're called.
 
 ```ts
 {
-  name: "Federn", reps: 300, secPerRep: 0.39, sayEvery: 50, anim: "bounces",
+  name: "Federn", reps: 300, secPerRep: 0.39, sayEvery: 50,
   sub: "Hüfte wechselt links, rechts",
   why: "...",            // written reference, not currently displayed
   cues: ["...", "..."],  // form cues, likewise
+  animation: {
+    cycle: 2,                       // one loop spans two reps: hips left, then right
+    base: arms.lowFront,            // the stance under every keyframe
+    keys: [
+      { yaw: 0.22, roll: 0.1 },     // rep starts: up, hips swung left
+      dip(0.62),                    // halfway: down
+      { yaw: -0.22, roll: -0.1 },   // next rep starts: up, hips swung right
+      dip(0.62),                    // and down again
+    ],
+  },
 }
 ```
 
 - `reps` — total repetitions
 - `secPerRep` — pace in seconds per rep; this sets how long the move takes
 - `sayEvery` — how often the voice calls a number out loud
-- `anim` — which demonstrator animation draws it; add `side: -1` to mirror it
+- `side: -1` — mirrors the animation, for the right-hand version of a one-sided move
 
-The `why` and `cues` fields are kept as the written reference for each movement, but nothing renders them — the screen that showed them is gone.
+### How the demonstrator animates a move
+
+An animation is a list of **keyframes** — sparse poses — spaced evenly around one loop, joined by a closed spline. Because the loop closes, the figure can never jump between reps: the last key flows back into the first as smoothly as any other segment. `cycle` says how many reps one loop spans — `1` for a move that repeats identically, `2` for one that alternates sides. The session hands the figure its time in reps, so the animation is always exactly in step with the counter.
+
+A pose is joint angles in radians — hips, knees, shoulders, elbows, spine, chest, neck — plus where the root sits; anything left out is the neutral standing pose. `src/figure/presets.ts` has the stances and arm positions most moves are built from (`arms.wide`, `dip(0.6)`, `allFours`, `seated9090`, `turn(1.5)`…); spread them into a key and override what the move needs. `ground` says what stays on the floor (`"feet"`, the whole body, or nothing) and `view` picks the camera.
+
+After writing or changing an animation, run
+
+```bash
+node scripts/run.mjs scripts/pose-range.ts
+```
+
+It prints how far the head, hips, hands and feet travel over one loop of every move, and whether the loop closes. Anything with only a couple of centimetres of travel will look frozen at this canvas size; anything flagged `jumps` will visibly snap once a rep.
 
 Rest between moves (`transition`), the countdown before the first move (`prep`) and the pace options are in `src/config.ts`.
-
-If you change a pose, check it still reads on screen: `node --experimental-strip-types scripts/pose-range.ts` prints how far the head, hips, hands and feet travel over one rep of every movement. Anything with only a couple of centimetres of travel will look frozen at this canvas size. A brand new movement needs a pose function in `src/figure/poses.ts` plus an entry in the `GROUNDING` and `CAMERAS` maps there.
 
 ## Wording
 

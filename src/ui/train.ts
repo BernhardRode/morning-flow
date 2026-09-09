@@ -1,4 +1,4 @@
-import { SKY } from "../config";
+import { SKY, TIMING } from "../config";
 import { COPY } from "../copy";
 import { clock } from "../core/format";
 import type { Session, SessionEvents } from "../core/session";
@@ -42,25 +42,42 @@ export function createTrainScreen(opts: {
 
   let session: Session | null = null;
   let unsubscribe: Array<() => void> = [];
+  /** Reps whose click is already on the audio clock, for the current move. */
+  let clicked = new Set<number>();
 
-  function beat(n: number, strong: boolean): void {
+  function beat(n: number): void {
     count.textContent = String(n);
     count.classList.remove("beat");
     void count.offsetWidth; // restart the animation
     count.classList.add("beat");
-    metronome.click(strong);
   }
 
   function restLabel(isFirst: boolean): string {
     return isFirst ? COPY.phase.starting : COPY.phase.next;
   }
 
+  /** Hand every rep inside the lookahead window to the audio clock, once. */
+  function scheduleClicks(active: Session): void {
+    for (const r of active.upcomingReps(TIMING.clickLookahead)) {
+      if (clicked.has(r.rep)) continue;
+      clicked.add(r.rep);
+      metronome.clickAt(r.at, r.spoken || r.last);
+    }
+  }
+
+  /** Anything skipped or paused must not click late. */
+  function dropClicks(): void {
+    metronome.cancel();
+    clicked = new Set();
+  }
+
   function bind(active: Session): void {
     unsubscribe = [
       active.on("phase", ({ phase, isFirst }) => {
         voice.cancel();
+        dropClicks();
         moveName.textContent = phase.move.name;
-        figure.show(phase.move.anim, phase.move.side ?? 1);
+        figure.show(phase.move.animation, phase.move.side ?? 1);
         count.style.animationDuration = `${Math.min(0.4, phase.move.secPerRep * 0.7)}s`;
 
         if (phase.kind === "ready") {
@@ -70,11 +87,12 @@ export function createTrainScreen(opts: {
           sub.textContent = COPY.restSub(phase.move.reps, phase.move.sub);
           voice.say(COPY.spoken.announce(phase.move.name, phase.move.reps));
         } else {
-          figure.drive(() => active.repPhase());
+          figure.drive(() => active.repTime());
           phaseLabel.textContent = "";
           target.textContent = COPY.target(phase.move.reps);
           sub.textContent = phase.move.sub;
           voice.say(COPY.spoken.go);
+          scheduleClicks(active);
         }
       }),
 
@@ -84,12 +102,13 @@ export function createTrainScreen(opts: {
       }),
 
       active.on("rep", ({ rep, spoken, last }) => {
-        beat(rep, spoken || last);
+        beat(rep);
         if (spoken && !last) voice.say(String(rep), 1.15);
         if (last) voice.say(COPY.spoken.lastOne);
       }),
 
       active.on("progress", ({ done, total, ratio, phase }) => {
+        scheduleClicks(active);
         el("progress").style.width = `${ratio * 100}%`;
         ttLeft.textContent = COPY.moveOf(phase.moveIndex + 1, active.moves.length);
         ttRight.textContent = `${clock(done)} / ${clock(total)}`;
@@ -98,6 +117,7 @@ export function createTrainScreen(opts: {
       }),
 
       active.on("pause", ({ paused }) => {
+        if (paused) dropClicks();
         playIcon.innerHTML = paused ? PLAY_PATH : PAUSE_PATH;
         playBtn.setAttribute("aria-label", paused ? COPY.controls.resume : COPY.controls.pause);
         phaseLabel.textContent = paused
@@ -108,6 +128,7 @@ export function createTrainScreen(opts: {
       }),
 
       active.on("finish", (result) => {
+        dropClicks();
         voice.say(COPY.spoken.done);
         opts.onFinish(result);
       }),
@@ -126,6 +147,7 @@ export function createTrainScreen(opts: {
   el("endBtn").addEventListener("click", () => {
     session?.stop();
     voice.cancel();
+    dropClicks();
     opts.onEnd();
   });
 
@@ -149,6 +171,7 @@ export function createTrainScreen(opts: {
     run(next) {
       for (const off of unsubscribe) off();
       unsubscribe = [];
+      dropClicks();
       session = next;
       playIcon.innerHTML = PAUSE_PATH;
       playBtn.setAttribute("aria-label", COPY.controls.pause);
