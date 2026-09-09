@@ -5,8 +5,8 @@ import type { Routine } from "../types";
  * so a speed of 0.7 runs 30% slower; rep counts never change.
  *
  * Scaling the data once, here, means the session clock, the move durations on
- * the home screen, the learn screen's dose line and the demonstrator all read
- * the same pace without any of them knowing a pace setting exists.
+ * the home screen and the demonstrator all read the same pace without any of
+ * them knowing a pace setting exists.
  */
 export function atSpeed(routine: Routine, speed: number): Routine {
   if (speed === 1) return routine;
