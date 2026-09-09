@@ -1,3 +1,4 @@
+import { COPY } from "../copy";
 import { clock } from "../core/format";
 import { el } from "./dom";
 
@@ -14,9 +15,8 @@ export function createDoneScreen(opts: {
 
   return {
     render({ totalReps, totalSeconds }) {
-      el("doneTitle").textContent = `${totalReps} done.`;
-      el("doneLine").textContent =
-        `${totalReps} reps in ${clock(totalSeconds)}. The routine only works if tomorrow looks the same.`;
+      el("doneTitle").textContent = COPY.done.title(totalReps);
+      el("doneLine").textContent = COPY.done.line(totalReps, clock(totalSeconds));
     },
   };
 }

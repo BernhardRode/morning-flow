@@ -1,4 +1,5 @@
 import { SPEEDS, type Speed } from "../config";
+import { COPY } from "../copy";
 import { atSpeed } from "../core/pace";
 import { clock, moveSeconds, sessionSeconds } from "../core/format";
 import type { Routine } from "../types";
@@ -67,7 +68,7 @@ export function createHomeScreen(opts: {
       name.textContent = move.name;
       const dose = document.createElement("span");
       dose.className = "d";
-      dose.textContent = `${move.reps} ×  ${clock(moveSeconds(move))}`;
+      dose.textContent = COPY.moveDose(move.reps, clock(moveSeconds(move)));
       row.append(number, name, dose);
       return row;
     }));

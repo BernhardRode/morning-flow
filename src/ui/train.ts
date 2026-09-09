@@ -1,4 +1,5 @@
 import { SKY } from "../config";
+import { COPY } from "../copy";
 import { clock } from "../core/format";
 import type { Session, SessionEvents } from "../core/session";
 import { idle, type Demonstrator } from "../figure/demonstrator";
@@ -51,7 +52,7 @@ export function createTrainScreen(opts: {
   }
 
   function restLabel(isFirst: boolean): string {
-    return isFirst ? "starting" : "next up";
+    return isFirst ? COPY.phase.starting : COPY.phase.next;
   }
 
   function bind(active: Session): void {
@@ -66,14 +67,14 @@ export function createTrainScreen(opts: {
           figure.drive(idle(Math.max(phase.move.secPerRep, MIN_DEMO_SECONDS)));
           phaseLabel.textContent = restLabel(isFirst);
           target.textContent = "";
-          sub.textContent = `${phase.move.reps} reps · ${phase.move.sub}`;
-          voice.say(`${phase.move.name}. ${phase.move.reps} reps.`);
+          sub.textContent = COPY.restSub(phase.move.reps, phase.move.sub);
+          voice.say(COPY.spoken.announce(phase.move.name, phase.move.reps));
         } else {
           figure.drive(() => active.repPhase());
           phaseLabel.textContent = "";
-          target.textContent = `of ${phase.move.reps}`;
+          target.textContent = COPY.target(phase.move.reps);
           sub.textContent = phase.move.sub;
-          voice.say("Go");
+          voice.say(COPY.spoken.go);
         }
       }),
 
@@ -85,12 +86,12 @@ export function createTrainScreen(opts: {
       active.on("rep", ({ rep, spoken, last }) => {
         beat(rep, spoken || last);
         if (spoken && !last) voice.say(String(rep), 1.15);
-        if (last) voice.say("Last one");
+        if (last) voice.say(COPY.spoken.lastOne);
       }),
 
       active.on("progress", ({ done, total, ratio, phase }) => {
         el("progress").style.width = `${ratio * 100}%`;
-        ttLeft.textContent = `Move ${phase.moveIndex + 1} of ${active.moves.length}`;
+        ttLeft.textContent = COPY.moveOf(phase.moveIndex + 1, active.moves.length);
         ttRight.textContent = `${clock(done)} / ${clock(total)}`;
         document.body.style.setProperty("--sky-top", mix(SKY.topStart, SKY.topEnd, ratio));
         document.body.style.setProperty("--sky-bottom", mix(SKY.bottomStart, SKY.bottomEnd, ratio));
@@ -98,16 +99,16 @@ export function createTrainScreen(opts: {
 
       active.on("pause", ({ paused }) => {
         playIcon.innerHTML = paused ? PLAY_PATH : PAUSE_PATH;
-        playBtn.setAttribute("aria-label", paused ? "Resume" : "Pause");
+        playBtn.setAttribute("aria-label", paused ? COPY.controls.resume : COPY.controls.pause);
         phaseLabel.textContent = paused
-          ? "paused"
+          ? COPY.phase.paused
           : active.phase.kind === "ready"
             ? restLabel(active.phase.moveIndex === 0)
             : "";
       }),
 
       active.on("finish", (result) => {
-        voice.say("Done.");
+        voice.say(COPY.spoken.done);
         opts.onFinish(result);
       }),
     ];
@@ -150,7 +151,7 @@ export function createTrainScreen(opts: {
       unsubscribe = [];
       session = next;
       playIcon.innerHTML = PAUSE_PATH;
-      playBtn.setAttribute("aria-label", "Pause");
+      playBtn.setAttribute("aria-label", COPY.controls.pause);
       count.textContent = "";
       bind(next);
       next.start();

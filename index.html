@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B1620">
-<meta name="description" content="Two guided movement routines — Morning Flow and Hip Reset — with paced rep counting and voice cues.">
+<meta name="description" content="Angeleitete Morgenroutine mit getaktetem Zählen, Sprachansagen und einer 3D-Figur, die jede Übung vormacht.">
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="./favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Flows">
-<title>Flows — morning &amp; hips</title>
+<meta name="apple-mobile-web-app-title" content="Flow">
+<title>Morgen-Flow</title>
 </head>
 <body>
 <div id="progress"></div>
@@ -23,13 +23,13 @@
     <p class="lede" id="homeLede"></p>
     <ul class="moves" id="moveList"></ul>
     <div class="actions">
-      <div class="pace" id="pace" role="group" aria-label="Pace"></div>
-      <button class="btn ghost" id="installBtn" hidden>Install on this device</button>
-      <button class="btn ghost" id="learnBtn">Learn the moves first</button>
-      <button class="btn primary" id="startBtn">Start the flow</button>
+      <div class="pace" id="pace" role="group" aria-label="Tempo"></div>
+      <button class="btn ghost" id="installBtn" hidden>Auf diesem Gerät installieren</button>
+      <button class="btn ghost" id="learnBtn">Übungen vorher ansehen</button>
+      <button class="btn primary" id="startBtn">Flow starten</button>
       <div class="opts">
-        <label><input type="checkbox" id="voiceOn" checked> Voice</label>
-        <label><input type="checkbox" id="clickOn" checked> Pace click</label>
+        <label><input type="checkbox" id="voiceOn" checked> Stimme</label>
+        <label><input type="checkbox" id="clickOn" checked> Taktklick</label>
       </div>
     </div>
   </div>
@@ -37,7 +37,7 @@
 
 <section id="learn" class="screen">
   <div class="wrap">
-    <div class="step-top"><span id="learnPos"></span><button id="learnExit">Close</button></div>
+    <div class="step-top"><span id="learnPos"></span><button id="learnExit">Schließen</button></div>
     <div class="learn-body">
       <h2 id="learnName"></h2>
       <div id="learnStage"></div>
@@ -46,8 +46,8 @@
       <p class="dose" id="learnDose"></p>
     </div>
     <div class="row">
-      <button class="btn ghost" id="learnPrev">Back</button>
-      <button class="btn primary" id="learnNext">Next</button>
+      <button class="btn ghost" id="learnPrev">Zurück</button>
+      <button class="btn primary" id="learnNext">Weiter</button>
     </div>
   </div>
 </section>
@@ -64,22 +64,22 @@
     </div>
     <div>
       <div class="controls">
-        <button class="ctl" id="prevBtn" aria-label="Previous move"><svg viewBox="0 0 24 24"><path d="M7 6h2v12H7zm10 0v12l-8-6z"/></svg></button>
+        <button class="ctl" id="prevBtn" aria-label="Vorherige Übung"><svg viewBox="0 0 24 24"><path d="M7 6h2v12H7zm10 0v12l-8-6z"/></svg></button>
         <button class="ctl big" id="playBtn" aria-label="Pause"><svg id="playIcon" viewBox="0 0 24 24"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg></button>
-        <button class="ctl" id="nextBtn" aria-label="Next move"><svg viewBox="0 0 24 24"><path d="M15 6h2v12h-2zM7 6l8 6-8 6z"/></svg></button>
+        <button class="ctl" id="nextBtn" aria-label="Nächste Übung"><svg viewBox="0 0 24 24"><path d="M15 6h2v12h-2zM7 6l8 6-8 6z"/></svg></button>
       </div>
-      <button id="endBtn">End session</button>
+      <button id="endBtn">Einheit beenden</button>
     </div>
   </div>
 </section>
 
 <section id="done" class="screen">
   <div class="wrap">
-    <h2 id="doneTitle">Done.</h2>
+    <h2 id="doneTitle">Fertig.</h2>
     <p class="lede" style="margin-inline:auto;text-align:center" id="doneLine"></p>
     <div class="actions" style="margin-top:28px">
-      <button class="btn primary" id="againBtn">Run it again</button>
-      <button class="btn ghost" id="homeBtn">Back to start</button>
+      <button class="btn primary" id="againBtn">Nochmal starten</button>
+      <button class="btn ghost" id="homeBtn">Zurück zum Start</button>
     </div>
   </div>
 </section>
