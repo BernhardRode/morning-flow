@@ -13,10 +13,10 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Flows — morning & hips",
-        short_name: "Flows",
-        description: "Guided movement routines with paced rep counting and voice cues.",
-        lang: "en",
+        name: "Morgen-Flow",
+        short_name: "Flow",
+        description: "Angeleitete Morgenroutine mit getaktetem Zählen und Sprachansagen.",
+        lang: "de",
         theme_color: "#0B1620",
         background_color: "#0B1620",
         display: "standalone",

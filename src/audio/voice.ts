@@ -24,7 +24,7 @@ export class Voice {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
     utterance.pitch = 0.95;
-    utterance.lang = "en-GB";
+    utterance.lang = "de-DE";
     api.speak(utterance);
   }
 

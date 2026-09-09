@@ -1,12 +1,14 @@
 # morning-flow
 
-A guided movement web app for one routine: **Morning Flow**, thirteen movements and 820 reps in just over fifteen minutes.
+A guided movement web app for one routine: **Morgen-Flow**, thirteen movements and 820 reps.
+
+The app's interface and routine are in German. Code, comments and this README are in English.
 
 Seven rhythmic standing movements from Jules Horn's 30-day morning routine, then four hip openers on the floor for outer hip, inner thigh, groin and rotation. Standing work first and floor work second, so you only get down once.
 
 The session announces the moves, clicks the pace, counts the reps, and draws a 3D figure demonstrating the movement. The background warms from night to morning as you work through it.
 
-The routine's own numbers are quick — body bounces at 0.39s a rep is 154 a minute — so the home screen has a pace control: 0.7×, 0.85× or 1× of that speed, showing what each does to the session length. It starts at 0.7×. Rep counts never change, only how long each one gets; the rests between moves stay fixed.
+The routine's own numbers are quick — "Federn" at 0.39s a rep is 154 bounces a minute — so the home screen has a pace control: 0.7×, 0.85× or 1× of that speed, showing what each does to the session length. It starts at 0.7×. Rep counts never change, only how long each one gets; the rests between moves stay fixed.
 
 ## Running it
 
@@ -41,6 +43,7 @@ src/
   config.ts           session timing and the sky gradient
   types.ts            Move and Routine
   style.css
+  copy.ts             every string the app builds at runtime
   data/routine.ts     the routine — reps, pace, cues. Edit this to change the workout.
   core/
     session.ts        the clock: phases, reps, pause, progress. Emits events, touches no DOM.
@@ -72,8 +75,8 @@ Everything about what you do is in `src/data/routine.ts` — one flat list of mo
 
 ```ts
 {
-  name: "Body bounces", reps: 300, secPerRep: 0.39, sayEvery: 50, anim: "bounces",
-  sub: "Hips switch left, right",
+  name: "Federn", reps: 300, secPerRep: 0.39, sayEvery: 50, anim: "bounces",
+  sub: "Hüfte wechselt links, rechts",
   why: "...",            // shown on the learn screen
   cues: ["...", "..."],  // form cues
 }
@@ -87,6 +90,10 @@ Everything about what you do is in `src/data/routine.ts` — one flat list of mo
 Rest between moves (`transition`), the countdown before the first move (`prep`) and the pace options are in `src/config.ts`.
 
 If you change a pose, check it still reads on screen: `node --experimental-strip-types scripts/pose-range.ts` prints how far the head, hips, hands and feet travel over one rep of every movement. Anything with only a couple of centimetres of travel will look frozen at this canvas size. A brand new movement needs a pose function in `src/figure/poses.ts` plus an entry in the `GROUNDING` and `CAMERAS` maps there.
+
+## Wording
+
+Labels that never change are German in `index.html`. Anything assembled from a number or a move name goes through `src/copy.ts`, which also formats seconds the German way — a decimal comma, one decimal place. Spoken cues are `de-DE`.
 
 ## Controls
 

@@ -1,3 +1,4 @@
+import { COPY } from "../copy";
 import { clock, moveSeconds } from "../core/format";
 import { idle, type Demonstrator } from "../figure/demonstrator";
 import type { Move } from "../types";
@@ -30,7 +31,7 @@ export function createLearnScreen(opts: {
     const move = moves[index];
     if (!move) return;
 
-    position.textContent = `Move ${index + 1} of ${moves.length}`;
+    position.textContent = COPY.moveOf(index + 1, moves.length);
     name.textContent = move.name;
     why.textContent = move.why;
     cues.replaceChildren(...move.cues.map((cue) => {
@@ -40,13 +41,13 @@ export function createLearnScreen(opts: {
       row.append(dash, document.createTextNode(cue));
       return row;
     }));
-    dose.textContent = `${move.reps} reps at about ${move.secPerRep}s each — ${clock(moveSeconds(move))}.`;
+    dose.textContent = COPY.dose(move.reps, move.secPerRep, clock(moveSeconds(move)));
 
     opts.figure.show(move.anim, move.side ?? 1);
     opts.figure.drive(idle(Math.max(move.secPerRep, MIN_DEMO_SECONDS)));
 
     prev.style.visibility = index ? "visible" : "hidden";
-    next.textContent = index === moves.length - 1 ? "Start the flow" : "Next";
+    next.textContent = index === moves.length - 1 ? COPY.learn.start : COPY.learn.next;
   }
 
   prev.addEventListener("click", () => {
