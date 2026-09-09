@@ -144,6 +144,24 @@ export class Session extends Emitter<SessionEvents> {
     this.enterPhase();
   }
 
+  /**
+   * The last three seconds before a move begins, with the page-clock time of
+   * each, so the countdown can be marked on the audio clock. Empty outside a
+   * rest phase or while paused.
+   */
+  upcomingCountdown(seconds: number): Array<{ secondsLeft: number; at: number }> {
+    const phase = this.phase;
+    if (phase.kind !== "ready" || this.paused) return [];
+    const now = performance.now();
+    const end = this.phaseStart + phase.seconds * 1000;
+    const out: Array<{ secondsLeft: number; at: number }> = [];
+    for (const secondsLeft of [3, 2, 1]) {
+      const at = end - secondsLeft * 1000;
+      if (at >= now - 1 && at <= now + seconds * 1000) out.push({ secondsLeft, at });
+    }
+    return out;
+  }
+
   private stopClock(): void {
     if (this.timer !== undefined) clearInterval(this.timer);
     this.timer = undefined;

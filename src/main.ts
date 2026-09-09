@@ -9,7 +9,7 @@ import { Metronome } from "./audio/metronome";
 import { Voice } from "./audio/voice";
 import { Session } from "./core/session";
 import { ROUTINE } from "./data/routine";
-import { createLazyFigure } from "./figure/demonstrator";
+import { createFigure } from "./figure/demonstrator";
 import { InstallPrompt } from "./system/install";
 import { ScreenWakeLock } from "./system/wake-lock";
 import { createDoneScreen } from "./ui/done";
@@ -18,7 +18,7 @@ import { createHomeScreen } from "./ui/home";
 import { currentScreen, onScreen, showScreen } from "./ui/screens";
 import { createTrainScreen } from "./ui/train";
 
-const figure = createLazyFigure();
+const figure = createFigure();
 const voice = new Voice();
 const metronome = new Metronome();
 const wakeLock = new ScreenWakeLock();

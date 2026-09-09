@@ -18,9 +18,15 @@ export class Voice {
     api.speak(utterance);
   }
 
-  say(text: string, rate = 1): void {
+  /**
+   * Speech is queued by the browser, so a line spoken while another is still
+   * going comes out late. Anything that has to land on a beat — a countdown
+   * number, "Los" — passes `interrupt` and cuts whatever is still talking.
+   */
+  say(text: string, { rate = 1, interrupt = false } = {}): void {
     const api = this.api;
     if (!this.enabled || !api) return;
+    if (interrupt) api.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
     utterance.pitch = 0.95;

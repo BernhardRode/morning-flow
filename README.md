@@ -24,7 +24,9 @@ npm run typecheck
 
 ## Install and offline
 
-The build is a progressive web app: a service worker precaches every asset — HTML, JS, CSS, fonts and the three.js chunk — so once it has been opened with a connection it runs with no network at all. Updates are picked up silently on the next load.
+The build is a progressive web app: a service worker precaches every asset — HTML, JS, CSS and fonts — so once it has been opened with a connection it runs with no network at all. Updates are picked up silently on the next load.
+
+The whole app, three.js included, is one JavaScript file on purpose. It used to lazy-load the 3D figure as a separate chunk, and that broke on every deploy: the service worker updates itself immediately and drops the previous build's chunks, so a page that was already open would ask for a chunk that no longer existed and lose its figure until the next open. One payload means an open page always has all the code it will need. `public/assets/figure-C29d5iuX.js` is the last lazy chunk, kept for one deploy so pages open during the switch still find it — delete it in the deploy after.
 
 On Chromium the home screen shows an **Install on this device** button when the browser reports the app is installable; on iOS use Share → Add to Home Screen, which Safari offers instead. Installed, it launches standalone in portrait with no browser chrome.
 
