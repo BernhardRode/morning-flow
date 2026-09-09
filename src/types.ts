@@ -26,11 +26,8 @@ export interface Move {
 }
 
 export interface Routine {
-  id: string;
   /** Shown on the home screen; may contain <br> and <em>. */
   title: string;
-  /** Short name for the routine picker. */
-  label: string;
   lede: string;
   moves: Move[];
 }

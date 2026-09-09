@@ -3,10 +3,12 @@ import "@fontsource-variable/fraunces/opsz-italic.css";
 import "@fontsource-variable/instrument-sans/index.css";
 import "./style.css";
 
+import { DEFAULT_SPEED, type Speed } from "./config";
+import { atSpeed } from "./core/pace";
 import { Metronome } from "./audio/metronome";
 import { Voice } from "./audio/voice";
 import { Session } from "./core/session";
-import { ROUTINES } from "./data/routines";
+import { ROUTINE } from "./data/routine";
 import { createLazyFigure } from "./figure/demonstrator";
 import { InstallPrompt } from "./system/install";
 import { ScreenWakeLock } from "./system/wake-lock";
@@ -23,10 +25,11 @@ const metronome = new Metronome();
 const wakeLock = new ScreenWakeLock();
 const install = new InstallPrompt();
 
-let routineIndex = 0;
+let speed: Speed = DEFAULT_SPEED;
 let session: Session | null = null;
 
-const routine = () => ROUTINES[routineIndex]!;
+/** The routine as it will actually be run, at the chosen pace. */
+const routine = () => atSpeed(ROUTINE, speed);
 
 // The demonstrator follows the visible screen.
 onScreen((screen) => {
@@ -37,10 +40,10 @@ onScreen((screen) => {
 window.addEventListener("resize", () => figure.resize());
 
 const home = createHomeScreen({
-  routines: ROUTINES,
-  onSelect(index) {
-    routineIndex = index;
-    home.render(routineIndex);
+  routine: ROUTINE,
+  onSpeed(next) {
+    speed = next;
+    home.render(routine(), speed);
   },
   onLearn() {
     showScreen("learn");
@@ -106,5 +109,5 @@ document.addEventListener("visibilitychange", () => {
   if (session && !session.isPaused && currentScreen() === "train") void wakeLock.acquire();
 });
 
-home.render(routineIndex);
+home.render(routine(), speed);
 showScreen("home");

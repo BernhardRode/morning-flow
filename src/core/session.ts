@@ -1,7 +1,7 @@
 import { TIMING } from "../config";
 import type { Move, Routine } from "../types";
 import { Emitter } from "./emitter";
-import { moveSeconds, totalReps } from "./format";
+import { moveSeconds, sessionSeconds, totalReps } from "./format";
 
 export type PhaseKind = "ready" | "work";
 
@@ -56,7 +56,7 @@ export class Session extends Emitter<SessionEvents> {
     this.moves = routine.moves;
     this.queue = buildQueue(routine.moves);
     this.totalReps = totalReps(routine.moves);
-    this.totalSeconds = this.queue.reduce((sum, p) => sum + p.seconds, 0);
+    this.totalSeconds = sessionSeconds(routine.moves);
   }
 
   get phase(): Phase {
