@@ -29,6 +29,9 @@ export const COPY = {
     done: "Fertig.",
   },
 
+  /** Shown in the stage when the device can't draw the figure. */
+  figureUnavailable: "3D-Ansicht auf diesem Gerät nicht verfügbar",
+
   controls: {
     pause: "Pause",
     resume: "Weiter",

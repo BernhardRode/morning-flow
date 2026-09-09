@@ -56,12 +56,20 @@ export function createTrainScreen(opts: {
     return isFirst ? COPY.phase.starting : COPY.phase.next;
   }
 
-  /** Hand every rep inside the lookahead window to the audio clock, once. */
+  /**
+   * Hand every beat inside the lookahead window to the audio clock, once:
+   * the reps of a move, and the 3-2-1 before it starts.
+   */
   function scheduleClicks(active: Session): void {
     for (const r of active.upcomingReps(TIMING.clickLookahead)) {
       if (clicked.has(r.rep)) continue;
       clicked.add(r.rep);
       metronome.clickAt(r.at, r.spoken || r.last);
+    }
+    for (const c of active.upcomingCountdown(TIMING.clickLookahead)) {
+      if (clicked.has(-c.secondsLeft)) continue;
+      clicked.add(-c.secondsLeft);
+      metronome.clickAt(c.at, false);
     }
   }
 
@@ -91,19 +99,21 @@ export function createTrainScreen(opts: {
           phaseLabel.textContent = "";
           target.textContent = COPY.target(phase.move.reps);
           sub.textContent = phase.move.sub;
-          voice.say(COPY.spoken.go);
+          voice.say(COPY.spoken.go, { interrupt: true });
           scheduleClicks(active);
         }
       }),
 
       active.on("countdown", ({ secondsLeft }) => {
         count.textContent = String(secondsLeft);
-        if (secondsLeft <= 3 && secondsLeft > 0) voice.say(String(secondsLeft), 1.2);
+        // The number must land on its second, even if the move's name is
+        // still being read out.
+        if (secondsLeft <= 3 && secondsLeft > 0) voice.say(String(secondsLeft), { interrupt: true });
       }),
 
       active.on("rep", ({ rep, spoken, last }) => {
         beat(rep);
-        if (spoken && !last) voice.say(String(rep), 1.15);
+        if (spoken && !last) voice.say(String(rep), { rate: 1.05 });
         if (last) voice.say(COPY.spoken.lastOne);
       }),
 

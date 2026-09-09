@@ -1,10 +1,7 @@
 import type { Animation, Side } from "./pose";
-import type { Figure } from "./figure";
+import { Figure } from "./figure";
 
-/**
- * What the screens need from the demonstrator. Keeping it an interface lets
- * three.js stay out of the initial bundle — see `createLazyFigure` below.
- */
+/** What the screens need from the demonstrator. */
 export interface Demonstrator {
   mount(host: HTMLElement): void;
   unmount(): void;
@@ -18,54 +15,12 @@ export interface Demonstrator {
 export const idle = (seconds: number) => (): number => performance.now() / 1000 / seconds;
 
 /**
- * Stands in for the real figure until it is needed. three.js is ~500 kB, and
- * the home screen doesn't draw anything, so the renderer is fetched on the
- * first mount and the calls made in the meantime are replayed onto it.
+ * The figure ships in the main bundle on purpose. It used to be a lazily
+ * loaded chunk, and that broke on every deploy: the service worker updates
+ * itself immediately, drops the previous build's chunks from its cache, and
+ * a page that was already open then asks for a chunk that no longer exists
+ * anywhere. One payload means a page always has all the code it will need.
  */
-export function createLazyFigure(): Demonstrator {
-  let figure: Figure | null = null;
-  let loading = false;
-  let host: HTMLElement | null = null;
-  let lastShow: [Animation, Side] | null = null;
-  let lastDrive: (() => number) | null = null;
-
-  function load(): void {
-    if (figure || loading) return;
-    loading = true;
-    void import("./figure")
-      .then(({ Figure: Ctor }) => {
-        loading = false;
-        figure = new Ctor();
-        if (lastShow) figure.show(lastShow[0], lastShow[1]);
-        if (lastDrive) figure.drive(lastDrive);
-        if (host) figure.mount(host);
-      })
-      .catch(() => {
-        // No demonstrator, then. The session itself is unaffected.
-        loading = false;
-      });
-  }
-
-  return {
-    mount(next) {
-      host = next;
-      if (figure) figure.mount(next);
-      else load();
-    },
-    unmount() {
-      host = null;
-      figure?.unmount();
-    },
-    show(animation, side = 1) {
-      lastShow = [animation, side];
-      figure?.show(animation, side);
-    },
-    drive(phase) {
-      lastDrive = phase;
-      figure?.drive(phase);
-    },
-    resize() {
-      figure?.resize();
-    },
-  };
+export function createFigure(): Demonstrator {
+  return new Figure();
 }

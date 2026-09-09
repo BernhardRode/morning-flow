@@ -1,6 +1,7 @@
 import {
   Box3, DirectionalLight, HemisphereLight, PerspectiveCamera, Scene, Vector3, WebGLRenderer,
 } from "three";
+import { COPY } from "../copy";
 import { NEUTRAL, VIEWS, sample, type Animation, type FullPose, type Side } from "./pose";
 import { buildFloor, buildRig, type Rig } from "./skeleton";
 
@@ -38,9 +39,19 @@ export class Figure {
 
   /** Attach to a container and start rendering. */
   mount(host: HTMLElement): void {
-    if (!this.init()) return;
+    if (!this.init()) {
+      // Say so on screen. A blank stage looks like a bug in the app rather
+      // than a limit of the device, and a silent one is impossible to report.
+      host.replaceChildren();
+      const note = document.createElement("p");
+      note.className = "stage-note";
+      note.textContent = COPY.figureUnavailable;
+      host.appendChild(note);
+      return;
+    }
     const canvas = this.renderer!.domElement;
     this.host = host;
+    host.replaceChildren();
     host.appendChild(canvas);
     canvas.style.display = "block";
     canvas.style.width = "100%";
@@ -86,7 +97,8 @@ export class Figure {
     if (this.failed) return false;
     try {
       this.renderer = new WebGLRenderer({ antialias: true, alpha: true });
-    } catch {
+    } catch (error) {
+      console.warn("Demonstrator: WebGL unavailable", error);
       this.failed = true;
       return false;
     }
