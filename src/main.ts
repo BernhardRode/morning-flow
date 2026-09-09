@@ -6,7 +6,7 @@ import "./style.css";
 import { Metronome } from "./audio/metronome";
 import { Voice } from "./audio/voice";
 import { Session } from "./core/session";
-import { ROUTINES } from "./data/routines";
+import { ROUTINE } from "./data/routine";
 import { createLazyFigure } from "./figure/demonstrator";
 import { InstallPrompt } from "./system/install";
 import { ScreenWakeLock } from "./system/wake-lock";
@@ -23,10 +23,7 @@ const metronome = new Metronome();
 const wakeLock = new ScreenWakeLock();
 const install = new InstallPrompt();
 
-let routineIndex = 0;
 let session: Session | null = null;
-
-const routine = () => ROUTINES[routineIndex]!;
 
 // The demonstrator follows the visible screen.
 onScreen((screen) => {
@@ -37,14 +34,10 @@ onScreen((screen) => {
 window.addEventListener("resize", () => figure.resize());
 
 const home = createHomeScreen({
-  routines: ROUTINES,
-  onSelect(index) {
-    routineIndex = index;
-    home.render(routineIndex);
-  },
+  routine: ROUTINE,
   onLearn() {
     showScreen("learn");
-    learn.open(routine().moves);
+    learn.open(ROUTINE.moves);
   },
   onStart: () => startSession(),
   onInstall: () => void install.prompt(),
@@ -88,7 +81,7 @@ function startSession(): void {
   voice.unlock();
   void wakeLock.acquire();
 
-  session = new Session(routine());
+  session = new Session(ROUTINE);
   showScreen("train");
   train.run(session);
 }
@@ -106,5 +99,5 @@ document.addEventListener("visibilitychange", () => {
   if (session && !session.isPaused && currentScreen() === "train") void wakeLock.acquire();
 });
 
-home.render(routineIndex);
+home.render();
 showScreen("home");

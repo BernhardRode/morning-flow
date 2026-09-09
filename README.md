@@ -1,11 +1,10 @@
 # morning-flow
 
-A guided movement web app for two routines:
+A guided movement web app for one routine: **Morning Flow**, thirteen movements and 820 reps in just over fifteen minutes.
 
-- **Morning Flow · 750** — seven rhythmic movements, 750 reps, just under eleven minutes (Jules Horn's 30-day morning routine).
-- **Hip Reset** — four slow hip openers for outer hip, inner thigh, groin and rotation, about four minutes on the floor.
+Seven rhythmic standing movements from Jules Horn's 30-day morning routine, then four hip openers on the floor for outer hip, inner thigh, groin and rotation. Standing work first and floor work second, so you only get down once.
 
-Each session announces the moves, clicks the pace, counts the reps, and draws a 3D figure demonstrating the movement. The background warms from night to morning as you work through it.
+The session announces the moves, clicks the pace, counts the reps, and draws a 3D figure demonstrating the movement. The background warms from night to morning as you work through it.
 
 ## Running it
 
@@ -39,7 +38,7 @@ src/
   config.ts           session timing and the sky gradient
   types.ts            Move and Routine
   style.css
-  data/routines.ts    the routines — reps, pace, cues. Edit this to change a workout.
+  data/routine.ts     the routine — reps, pace, cues. Edit this to change the workout.
   core/
     session.ts        the clock: phases, reps, pause, progress. Emits events, touches no DOM.
     emitter.ts        small typed event emitter
@@ -63,9 +62,9 @@ src/
 
 The session engine and the UI are separate: `Session` runs the clock and reports what happened; the train screen listens and turns that into text, sound and animation. Nothing outside `figure/` knows three.js exists — it is imported dynamically on the first mount, so the app shell stays around 18 kB and the 480 kB renderer only loads when a figure is actually drawn.
 
-## Editing a routine
+## Editing the routine
 
-Everything about what you do is in `src/data/routines.ts`:
+Everything about what you do is in `src/data/routine.ts` — one flat list of moves, in the order you do them:
 
 ```ts
 {

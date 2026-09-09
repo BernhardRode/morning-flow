@@ -8,20 +8,18 @@ export interface Settings {
 }
 
 export interface HomeScreen {
-  render(activeIndex: number): void;
+  render(): void;
   settings(): Settings;
   /** Show or hide the install button. */
   setInstallAvailable(available: boolean): void;
 }
 
 export function createHomeScreen(opts: {
-  routines: readonly Routine[];
-  onSelect(index: number): void;
+  routine: Routine;
   onLearn(): void;
   onStart(): void;
   onInstall(): void;
 }): HomeScreen {
-  const picker = el("picker");
   const title = el("homeTitle");
   const lede = el("homeLede");
   const list = el<HTMLUListElement>("moveList");
@@ -34,17 +32,8 @@ export function createHomeScreen(opts: {
   el("learnBtn").addEventListener("click", opts.onLearn);
   el("startBtn").addEventListener("click", opts.onStart);
 
-  function render(activeIndex: number): void {
-    const routine = opts.routines[activeIndex];
-    if (!routine) return;
-
-    picker.replaceChildren(...opts.routines.map((r, i) => {
-      const pill = document.createElement("button");
-      pill.className = i === activeIndex ? "pill sel" : "pill";
-      pill.textContent = r.label;
-      pill.addEventListener("click", () => opts.onSelect(i));
-      return pill;
-    }));
+  function render(): void {
+    const routine = opts.routine;
 
     // The title carries its own line break and emphasis.
     title.innerHTML = routine.title;
