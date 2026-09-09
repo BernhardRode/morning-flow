@@ -1,4 +1,4 @@
-export type ScreenName = "home" | "learn" | "train" | "done";
+export type ScreenName = "home" | "train" | "done";
 
 const listeners = new Set<(screen: ScreenName) => void>();
 let current: ScreenName = "home";

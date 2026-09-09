@@ -22,7 +22,6 @@ export function createHomeScreen(opts: {
   /** The routine at its own pace — pace options are priced off this. */
   routine: Routine;
   onSpeed(speed: Speed): void;
-  onLearn(): void;
   onStart(): void;
   onInstall(): void;
 }): HomeScreen {
@@ -36,7 +35,6 @@ export function createHomeScreen(opts: {
   const installBtn = el<HTMLButtonElement>("installBtn");
 
   installBtn.addEventListener("click", opts.onInstall);
-  el("learnBtn").addEventListener("click", opts.onLearn);
   el("startBtn").addEventListener("click", opts.onStart);
 
   function render(routine: Routine, speed: Speed): void {

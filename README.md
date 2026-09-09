@@ -63,7 +63,7 @@ src/
     poses.ts          one function per movement: joint angles across a rep
   ui/
     screens.ts        which screen is visible
-    home.ts learn.ts train.ts done.ts
+    home.ts train.ts done.ts
     dom.ts
 ```
 
@@ -77,8 +77,8 @@ Everything about what you do is in `src/data/routine.ts` — one flat list of mo
 {
   name: "Federn", reps: 300, secPerRep: 0.39, sayEvery: 50, anim: "bounces",
   sub: "Hüfte wechselt links, rechts",
-  why: "...",            // shown on the learn screen
-  cues: ["...", "..."],  // form cues
+  why: "...",            // written reference, not currently displayed
+  cues: ["...", "..."],  // form cues, likewise
 }
 ```
 
@@ -87,13 +87,15 @@ Everything about what you do is in `src/data/routine.ts` — one flat list of mo
 - `sayEvery` — how often the voice calls a number out loud
 - `anim` — which demonstrator animation draws it; add `side: -1` to mirror it
 
+The `why` and `cues` fields are kept as the written reference for each movement, but nothing renders them — the screen that showed them is gone.
+
 Rest between moves (`transition`), the countdown before the first move (`prep`) and the pace options are in `src/config.ts`.
 
 If you change a pose, check it still reads on screen: `node --experimental-strip-types scripts/pose-range.ts` prints how far the head, hips, hands and feet travel over one rep of every movement. Anything with only a couple of centimetres of travel will look frozen at this canvas size. A brand new movement needs a pose function in `src/figure/poses.ts` plus an entry in the `GROUNDING` and `CAMERAS` maps there.
 
 ## Wording
 
-Labels that never change are German in `index.html`. Anything assembled from a number or a move name goes through `src/copy.ts`, which also formats seconds the German way — a decimal comma, one decimal place. Spoken cues are `de-DE`.
+Labels that never change are German in `index.html`. Anything assembled from a number or a move name goes through `src/copy.ts`, and spoken cues go out as `de-DE`.
 
 ## Controls
 

@@ -39,23 +39,12 @@ h1 em{font-style:italic;font-weight:500}
 .opts{display:flex;justify-content:center;gap:22px;padding-top:16px;color:var(--bone-faint);font-size:.85rem;flex-wrap:wrap}
 .opts label{display:flex;align-items:center;gap:8px}
 .opts input{accent-color:var(--gold);width:16px;height:16px}
-.step-top{display:flex;justify-content:space-between;align-items:center;color:var(--bone-faint);font-size:.82rem}
-.learn-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:28px 0}
-.learn-body h2{font-family:var(--serif);font-weight:300;font-size:clamp(1.9rem,8vw,2.9rem);line-height:1.05;letter-spacing:-.02em}
-.why{margin-top:16px;color:var(--sage);line-height:1.6;font-size:1rem;max-width:30rem}
-.cues{margin-top:22px;display:flex;flex-direction:column;gap:12px;max-width:30rem}
-.cues div{display:flex;gap:12px;line-height:1.5;color:var(--bone-dim);font-size:.95rem}
-.cues span{color:var(--gold);flex:none}
-.dose{margin-top:24px;font-family:var(--serif);font-size:1.05rem}
-.row{display:flex;gap:10px}
-.row .btn{flex:1}
 #train .wrap{justify-content:space-between;text-align:center}
 .tt{display:flex;justify-content:space-between;color:var(--bone-faint);font-size:.82rem;font-variant-numeric:tabular-nums}
 .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:0}
 .phase{color:var(--sage);font-size:.85rem;letter-spacing:.14em}
 #moveName{font-family:var(--serif);font-weight:300;font-size:clamp(1.8rem,7.5vw,2.6rem);line-height:1.1;letter-spacing:-.02em;max-width:16ch}
 #trainStage{width:100%;height:min(40vh,300px);min-height:170px;flex:none}
-#learnStage{width:100%;height:225px;margin:10px 0 4px}
 .cnt{display:flex;align-items:baseline;justify-content:center;gap:12px}
 #count{font-family:var(--serif);font-weight:500;font-variant-numeric:tabular-nums;
   font-size:clamp(3rem,15vw,4.6rem);line-height:1;color:var(--gold);display:inline-block}

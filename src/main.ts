@@ -15,7 +15,6 @@ import { ScreenWakeLock } from "./system/wake-lock";
 import { createDoneScreen } from "./ui/done";
 import { el } from "./ui/dom";
 import { createHomeScreen } from "./ui/home";
-import { createLearnScreen } from "./ui/learn";
 import { currentScreen, onScreen, showScreen } from "./ui/screens";
 import { createTrainScreen } from "./ui/train";
 
@@ -34,7 +33,6 @@ const routine = () => atSpeed(ROUTINE, speed);
 // The demonstrator follows the visible screen.
 onScreen((screen) => {
   if (screen === "train") figure.mount(el("trainStage"));
-  else if (screen === "learn") figure.mount(el("learnStage"));
   else figure.unmount();
 });
 window.addEventListener("resize", () => figure.resize());
@@ -45,21 +43,11 @@ const home = createHomeScreen({
     speed = next;
     home.render(routine(), speed);
   },
-  onLearn() {
-    showScreen("learn");
-    learn.open(routine().moves);
-  },
   onStart: () => startSession(),
   onInstall: () => void install.prompt(),
 });
 
 install.onAvailable((available) => home.setInstallAvailable(available));
-
-const learn = createLearnScreen({
-  figure,
-  onExit: () => showScreen("home"),
-  onStart: () => startSession(),
-});
 
 const train = createTrainScreen({
   figure,

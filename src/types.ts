@@ -16,9 +16,12 @@ export interface Move {
   sayEvery: number;
   /** One-line reminder shown under the counter. */
   sub: string;
-  /** Why the move is in the routine — shown on the learn screen. */
+  /**
+   * Why the move is in the routine, and how to hold the form. Kept as the
+   * written reference for each movement; nothing renders these since the
+   * learn screen was removed.
+   */
   why: string;
-  /** Form cues, shown as a list on the learn screen. */
   cues: string[];
   anim: AnimName;
   /** Defaults to 1. */
