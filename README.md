@@ -19,10 +19,21 @@ npm run typecheck
 
 `dist/` is a static bundle with relative asset URLs, so it can be served from any host or subpath. Fonts and three.js are bundled — the app needs no network at runtime.
 
+## Install and offline
+
+The build is a progressive web app: a service worker precaches every asset — HTML, JS, CSS, fonts and the three.js chunk — so once it has been opened with a connection it runs with no network at all. Updates are picked up silently on the next load.
+
+On Chromium the home screen shows an **Install on this device** button when the browser reports the app is installable; on iOS use Share → Add to Home Screen, which Safari offers instead. Installed, it launches standalone in portrait with no browser chrome.
+
+Icons are generated from a single SVG source by `node scripts/generate-icons.mjs` (favicon, `.ico`, apple-touch, and 192/512/maskable PWA icons). The outputs live in `public/` and are committed, so the script only needs re-running if the mark changes.
+
 ## Layout
 
 ```
 index.html            markup only — the shell every screen lives in
+public/               generated icons, copied to the site root
+scripts/
+  generate-icons.mjs  renders the whole icon set from one SVG
 src/
   main.ts             wiring: builds the screens, owns the session lifecycle
   config.ts           session timing and the sky gradient
@@ -36,7 +47,9 @@ src/
   audio/
     voice.ts          spoken move names and rep counts
     metronome.ts      the pace click
-  system/wake-lock.ts keeps the screen awake during a session
+  system/
+    wake-lock.ts      keeps the screen awake during a session
+    install.ts        the home-screen install prompt, where the browser offers one
   figure/
     demonstrator.ts   the interface the screens use, plus the lazy loader
     figure.ts         the three.js renderer and animation loop

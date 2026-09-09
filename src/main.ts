@@ -8,6 +8,7 @@ import { Voice } from "./audio/voice";
 import { Session } from "./core/session";
 import { ROUTINES } from "./data/routines";
 import { createLazyFigure } from "./figure/demonstrator";
+import { InstallPrompt } from "./system/install";
 import { ScreenWakeLock } from "./system/wake-lock";
 import { createDoneScreen } from "./ui/done";
 import { el } from "./ui/dom";
@@ -20,6 +21,7 @@ const figure = createLazyFigure();
 const voice = new Voice();
 const metronome = new Metronome();
 const wakeLock = new ScreenWakeLock();
+const install = new InstallPrompt();
 
 let routineIndex = 0;
 let session: Session | null = null;
@@ -45,7 +47,10 @@ const home = createHomeScreen({
     learn.open(routine().moves);
   },
   onStart: () => startSession(),
+  onInstall: () => void install.prompt(),
 });
+
+install.onAvailable((available) => home.setInstallAvailable(available));
 
 const learn = createLearnScreen({
   figure,

@@ -6,6 +6,7 @@
   --sans:"Instrument Sans Variable","Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{font-family:var(--sans);color:var(--bone);
   background:linear-gradient(170deg,var(--sky-top) 0%,var(--sky-bottom) 100%);

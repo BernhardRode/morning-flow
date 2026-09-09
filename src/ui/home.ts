@@ -10,6 +10,8 @@ export interface Settings {
 export interface HomeScreen {
   render(activeIndex: number): void;
   settings(): Settings;
+  /** Show or hide the install button. */
+  setInstallAvailable(available: boolean): void;
 }
 
 export function createHomeScreen(opts: {
@@ -17,6 +19,7 @@ export function createHomeScreen(opts: {
   onSelect(index: number): void;
   onLearn(): void;
   onStart(): void;
+  onInstall(): void;
 }): HomeScreen {
   const picker = el("picker");
   const title = el("homeTitle");
@@ -25,6 +28,9 @@ export function createHomeScreen(opts: {
   const voiceOn = el<HTMLInputElement>("voiceOn");
   const clickOn = el<HTMLInputElement>("clickOn");
 
+  const installBtn = el<HTMLButtonElement>("installBtn");
+
+  installBtn.addEventListener("click", opts.onInstall);
   el("learnBtn").addEventListener("click", opts.onLearn);
   el("startBtn").addEventListener("click", opts.onStart);
 
@@ -62,5 +68,8 @@ export function createHomeScreen(opts: {
   return {
     render,
     settings: () => ({ voice: voiceOn.checked, click: clickOn.checked }),
+    setInstallAvailable(available) {
+      installBtn.hidden = !available;
+    },
   };
 }
