@@ -37,9 +37,16 @@ const knee = (o: Pose, limb: Limb, v: number): void => { if (limb === "L") o.kne
 export const POSES: Record<AnimName, PoseFn> = {
   bounces(p) {
     const b = abs(sin(PI * p)), sw = tri(p);
+    // The knee bends to twice the hip angle, so the shin mirrors the thigh and
+    // the foot stays under the hip: the leg compresses instead of swinging, and
+    // grounding turns that into a real dip. Hip and knee in a 1:2 ratio are what
+    // make this a bounce rather than a march in place. 0.62 gives ~9.5cm of
+    // travel — deliberately larger than a real bounce, because at this canvas
+    // size an anatomically honest 2cm dip is invisible.
+    const dip = 0.62 * b;
     return {
       y: 0.95 - 0.085 * b, roll: sw * 0.1, yaw: sw * 0.22, x: sw * 0.035,
-      hipL: [-0.3 * b, 0, 0], hipR: [-0.3 * b, 0, 0], kneeL: 0.55 * b, kneeR: 0.55 * b,
+      hipL: [-dip, 0, 0], hipR: [-dip, 0, 0], kneeL: 2 * dip, kneeR: 2 * dip,
       spine: [0.05 * b, 0, -sw * 0.05], chest: [0, sw * 0.12, 0],
       armL: [-1.0, 0.2, 0.3], armR: [-1.0, 0.2, 0.3], elbL: 1.5, elbR: 1.5,
     };

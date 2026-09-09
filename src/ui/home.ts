@@ -1,4 +1,6 @@
-import { clock, moveSeconds } from "../core/format";
+import { SPEEDS, type Speed } from "../config";
+import { atSpeed } from "../core/pace";
+import { clock, moveSeconds, sessionSeconds } from "../core/format";
 import type { Routine } from "../types";
 import { el } from "./dom";
 
@@ -8,18 +10,22 @@ export interface Settings {
 }
 
 export interface HomeScreen {
-  render(): void;
+  /** `routine` is already scaled to the chosen pace. */
+  render(routine: Routine, speed: Speed): void;
   settings(): Settings;
   /** Show or hide the install button. */
   setInstallAvailable(available: boolean): void;
 }
 
 export function createHomeScreen(opts: {
+  /** The routine at its own pace — pace options are priced off this. */
   routine: Routine;
+  onSpeed(speed: Speed): void;
   onLearn(): void;
   onStart(): void;
   onInstall(): void;
 }): HomeScreen {
+  const pace = el("pace");
   const title = el("homeTitle");
   const lede = el("homeLede");
   const list = el<HTMLUListElement>("moveList");
@@ -32,8 +38,21 @@ export function createHomeScreen(opts: {
   el("learnBtn").addEventListener("click", opts.onLearn);
   el("startBtn").addEventListener("click", opts.onStart);
 
-  function render(): void {
-    const routine = opts.routine;
+  function render(routine: Routine, speed: Speed): void {
+    pace.replaceChildren(...SPEEDS.map((option) => {
+      const button = document.createElement("button");
+      button.className = option === speed ? "pace-opt sel" : "pace-opt";
+      button.setAttribute("aria-pressed", String(option === speed));
+      const multiplier = document.createElement("span");
+      multiplier.className = "m";
+      multiplier.textContent = `${option}×`;
+      const length = document.createElement("span");
+      length.className = "t";
+      length.textContent = clock(sessionSeconds(atSpeed(opts.routine, option).moves));
+      button.append(multiplier, length);
+      button.addEventListener("click", () => opts.onSpeed(option));
+      return button;
+    }));
 
     // The title carries its own line break and emphasis.
     title.innerHTML = routine.title;

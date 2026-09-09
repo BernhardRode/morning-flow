@@ -3,6 +3,8 @@ import "@fontsource-variable/fraunces/opsz-italic.css";
 import "@fontsource-variable/instrument-sans/index.css";
 import "./style.css";
 
+import { DEFAULT_SPEED, type Speed } from "./config";
+import { atSpeed } from "./core/pace";
 import { Metronome } from "./audio/metronome";
 import { Voice } from "./audio/voice";
 import { Session } from "./core/session";
@@ -23,7 +25,11 @@ const metronome = new Metronome();
 const wakeLock = new ScreenWakeLock();
 const install = new InstallPrompt();
 
+let speed: Speed = DEFAULT_SPEED;
 let session: Session | null = null;
+
+/** The routine as it will actually be run, at the chosen pace. */
+const routine = () => atSpeed(ROUTINE, speed);
 
 // The demonstrator follows the visible screen.
 onScreen((screen) => {
@@ -35,9 +41,13 @@ window.addEventListener("resize", () => figure.resize());
 
 const home = createHomeScreen({
   routine: ROUTINE,
+  onSpeed(next) {
+    speed = next;
+    home.render(routine(), speed);
+  },
   onLearn() {
     showScreen("learn");
-    learn.open(ROUTINE.moves);
+    learn.open(routine().moves);
   },
   onStart: () => startSession(),
   onInstall: () => void install.prompt(),
@@ -81,7 +91,7 @@ function startSession(): void {
   voice.unlock();
   void wakeLock.acquire();
 
-  session = new Session(ROUTINE);
+  session = new Session(routine());
   showScreen("train");
   train.run(session);
 }
@@ -99,5 +109,5 @@ document.addEventListener("visibilitychange", () => {
   if (session && !session.isPaused && currentScreen() === "train") void wakeLock.acquire();
 });
 
-home.render();
+home.render(routine(), speed);
 showScreen("home");

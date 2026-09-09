@@ -16,7 +16,7 @@ import type { Routine } from "../types";
  */
 export const ROUTINE: Routine = {
   title: "Morning<br><em>Flow</em>",
-  lede: "Thirteen movements in one flow: seven rhythmic standing movements from Jules Horn's 30-day morning routine, then four hip openers on the floor for outer hip, inner thigh, groin and rotation. 820 reps, just over fifteen minutes. Nothing is forced and nothing is heavy — the point is rhythm and repetition, not effort, and every hip rep is deliberately slow.",
+  lede: "Thirteen movements in one flow: seven rhythmic standing movements from Jules Horn's 30-day morning routine, then four hip openers on the floor for outer hip, inner thigh, groin and rotation. 820 reps. Nothing is forced and nothing is heavy — the point is rhythm and repetition, not effort, and every hip rep is deliberately slow.",
   moves: [
     {
       name: "Body bounces", reps: 300, secPerRep: 0.39, sayEvery: 50, anim: "bounces",

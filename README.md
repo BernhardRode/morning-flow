@@ -6,6 +6,8 @@ Seven rhythmic standing movements from Jules Horn's 30-day morning routine, then
 
 The session announces the moves, clicks the pace, counts the reps, and draws a 3D figure demonstrating the movement. The background warms from night to morning as you work through it.
 
+The routine's own numbers are quick — body bounces at 0.39s a rep is 154 a minute — so the home screen has a pace control: 0.7×, 0.85× or 1× of that speed, showing what each does to the session length. It starts at 0.7×. Rep counts never change, only how long each one gets; the rests between moves stay fixed.
+
 ## Running it
 
 ```bash
@@ -33,6 +35,7 @@ index.html            markup only — the shell every screen lives in
 public/               generated icons, copied to the site root
 scripts/
   generate-icons.mjs  renders the whole icon set from one SVG
+  pose-range.ts       measures how far the figure travels per rep, in cm
 src/
   main.ts             wiring: builds the screens, owns the session lifecycle
   config.ts           session timing and the sky gradient
@@ -41,6 +44,7 @@ src/
   data/routine.ts     the routine — reps, pace, cues. Edit this to change the workout.
   core/
     session.ts        the clock: phases, reps, pause, progress. Emits events, touches no DOM.
+    pace.ts           restates the routine at a chosen speed
     emitter.ts        small typed event emitter
     format.ts         rep/duration maths and m:ss
   audio/
@@ -80,7 +84,9 @@ Everything about what you do is in `src/data/routine.ts` — one flat list of mo
 - `sayEvery` — how often the voice calls a number out loud
 - `anim` — which demonstrator animation draws it; add `side: -1` to mirror it
 
-Rest between moves (`transition`) and the countdown before the first move (`prep`) are in `src/config.ts`. A brand new movement needs a pose function in `src/figure/poses.ts` plus an entry in the `GROUNDING` and `CAMERAS` maps there.
+Rest between moves (`transition`), the countdown before the first move (`prep`) and the pace options are in `src/config.ts`.
+
+If you change a pose, check it still reads on screen: `node --experimental-strip-types scripts/pose-range.ts` prints how far the head, hips, hands and feet travel over one rep of every movement. Anything with only a couple of centimetres of travel will look frozen at this canvas size. A brand new movement needs a pose function in `src/figure/poses.ts` plus an entry in the `GROUNDING` and `CAMERAS` maps there.
 
 ## Controls
 
