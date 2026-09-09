@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1620">
+<meta name="description" content="Two guided movement routines — Morning Flow and Hip Reset — with paced rep counting and voice cues.">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="./favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Flows">
+<title>Flows — morning &amp; hips</title>
+</head>
+<body>
+<div id="progress"></div>
+
+<section id="home" class="screen on">
+  <div class="wrap">
+    <div class="picker" id="picker"></div>
+    <h1 id="homeTitle"></h1>
+    <p class="lede" id="homeLede"></p>
+    <ul class="moves" id="moveList"></ul>
+    <div class="actions">
+      <button class="btn ghost" id="installBtn" hidden>Install on this device</button>
+      <button class="btn ghost" id="learnBtn">Learn the moves first</button>
+      <button class="btn primary" id="startBtn">Start the flow</button>
+      <div class="opts">
+        <label><input type="checkbox" id="voiceOn" checked> Voice</label>
+        <label><input type="checkbox" id="clickOn" checked> Pace click</label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="learn" class="screen">
+  <div class="wrap">
+    <div class="step-top"><span id="learnPos"></span><button id="learnExit">Close</button></div>
+    <div class="learn-body">
+      <h2 id="learnName"></h2>
+      <div id="learnStage"></div>
+      <p class="why" id="learnWhy"></p>
+      <div class="cues" id="learnCues"></div>
+      <p class="dose" id="learnDose"></p>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="learnPrev">Back</button>
+      <button class="btn primary" id="learnNext">Next</button>
+    </div>
+  </div>
+</section>
+
+<section id="train" class="screen">
+  <div class="wrap">
+    <div class="tt"><span id="ttLeft"></span><span id="ttRight"></span></div>
+    <div class="stage">
+      <div class="phase" id="phase"></div>
+      <div id="moveName"></div>
+      <div id="trainStage"></div>
+      <div class="cnt"><span id="count"></span><span id="target"></span></div>
+      <div id="sub"></div>
+    </div>
+    <div>
+      <div class="controls">
+        <button class="ctl" id="prevBtn" aria-label="Previous move"><svg viewBox="0 0 24 24"><path d="M7 6h2v12H7zm10 0v12l-8-6z"/></svg></button>
+        <button class="ctl big" id="playBtn" aria-label="Pause"><svg id="playIcon" viewBox="0 0 24 24"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg></button>
+        <button class="ctl" id="nextBtn" aria-label="Next move"><svg viewBox="0 0 24 24"><path d="M15 6h2v12h-2zM7 6l8 6-8 6z"/></svg></button>
+      </div>
+      <button id="endBtn">End session</button>
+    </div>
+  </div>
+</section>
+
+<section id="done" class="screen">
+  <div class="wrap">
+    <h2 id="doneTitle">Done.</h2>
+    <p class="lede" style="margin-inline:auto;text-align:center" id="doneLine"></p>
+    <div class="actions" style="margin-top:28px">
+      <button class="btn primary" id="againBtn">Run it again</button>
+      <button class="btn ghost" id="homeBtn">Back to start</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
