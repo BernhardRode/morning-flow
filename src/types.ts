@@ -1,10 +1,6 @@
-/** Which demonstrator animation a move is drawn with. */
-export type AnimName =
-  | "bounces" | "waves" | "heart" | "side2side" | "altarms" | "zen" | "dead"
-  | "hydrant" | "adductor" | "cossack" | "ninety";
+import type { Animation, Side } from "./figure/pose";
 
-/** 1 = left-side lead, -1 = right-side lead (mirrors the animation and the camera). */
-export type Side = 1 | -1;
+export type { Animation, Side };
 
 export interface Move {
   name: string;
@@ -23,8 +19,9 @@ export interface Move {
    */
   why: string;
   cues: string[];
-  anim: AnimName;
-  /** Defaults to 1. */
+  /** How the demonstrator performs it — keyframes, see figure/pose.ts. */
+  animation: Animation;
+  /** -1 mirrors the animation for the right-side version of a move. Default 1. */
   side?: Side;
 }
 

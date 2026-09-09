@@ -1,4 +1,4 @@
-import type { AnimName, Side } from "../types";
+import type { Animation, Side } from "./pose";
 import type { Figure } from "./figure";
 
 /**
@@ -8,14 +8,14 @@ import type { Figure } from "./figure";
 export interface Demonstrator {
   mount(host: HTMLElement): void;
   unmount(): void;
-  show(anim: AnimName, side?: Side): void;
+  show(animation: Animation, side?: Side): void;
+  /** Supply the time within the current move, in reps (fractional, unbounded). */
   drive(phase: () => number): void;
   resize(): void;
 }
 
-/** A phase function that loops freely, one cycle every `seconds`. */
-export const idle = (seconds: number) => (): number =>
-  ((performance.now() / 1000) % seconds) / seconds;
+/** A phase function that loops freely, one rep every `seconds`. */
+export const idle = (seconds: number) => (): number => performance.now() / 1000 / seconds;
 
 /**
  * Stands in for the real figure until it is needed. three.js is ~500 kB, and
@@ -26,7 +26,7 @@ export function createLazyFigure(): Demonstrator {
   let figure: Figure | null = null;
   let loading = false;
   let host: HTMLElement | null = null;
-  let lastShow: [AnimName, Side] | null = null;
+  let lastShow: [Animation, Side] | null = null;
   let lastDrive: (() => number) | null = null;
 
   function load(): void {
@@ -56,9 +56,9 @@ export function createLazyFigure(): Demonstrator {
       host = null;
       figure?.unmount();
     },
-    show(anim, side = 1) {
-      lastShow = [anim, side];
-      figure?.show(anim, side);
+    show(animation, side = 1) {
+      lastShow = [animation, side];
+      figure?.show(animation, side);
     },
     drive(phase) {
       lastDrive = phase;

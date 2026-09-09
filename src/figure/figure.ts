@@ -1,26 +1,19 @@
 import {
   Box3, DirectionalLight, HemisphereLight, PerspectiveCamera, Scene, Vector3, WebGLRenderer,
 } from "three";
-import type { AnimName, Side } from "../types";
-import { CAMERAS, GROUNDING, POSES, type Pose } from "./poses";
+import { NEUTRAL, VIEWS, sample, type Animation, type FullPose, type Side } from "./pose";
 import { buildFloor, buildRig, type Rig } from "./skeleton";
-
-/** Neutral standing pose — every pose is applied on top of this. */
-const NEUTRAL: Required<Pose> = {
-  x: 0, y: 0.95, z: 0,
-  yaw: 0, pitch: 0, roll: 0,
-  spine: [0, 0, 0], chest: [0, 0, 0], neck: [0, 0, 0],
-  armL: [0, 0, 0], armR: [0, 0, 0], elbL: 0, elbR: 0,
-  hipL: [0, 0, 0], hipR: [0, 0, 0], kneeL: 0, kneeR: 0,
-};
 
 /** How fast the camera slides to a new animation's viewpoint. */
 const CAMERA_EASE = 0.06;
 
+/** Something to show before any move has been chosen. */
+const IDLE: Animation = { keys: [{}] };
+
 /**
- * The little figure that demonstrates each move. It renders into whichever
- * element it is mounted on, and reads its own timing from a phase function so
- * it can follow the session's rep clock or idle at its own pace.
+ * The figure that demonstrates each move. It renders into whichever element
+ * it is mounted on, and reads its own timing from a phase function so it can
+ * follow the session's rep clock or idle at its own pace.
  *
  * If WebGL is unavailable the figure is simply absent — nothing else breaks.
  */
@@ -33,12 +26,12 @@ export class Figure {
   private running = false;
   private failed = false;
 
-  private anim: AnimName = "bounces";
+  private animation: Animation = IDLE;
   private side: Side = 1;
-  private phase: () => number = () => (performance.now() / 1400) % 1;
+  private phase: () => number = () => performance.now() / 1400;
 
-  private readonly camPos = new Vector3(2.4, 1.6, 3.4);
-  private readonly camAim = new Vector3(0, 0.95, 0);
+  private readonly camPos = new Vector3(...VIEWS.front.pos);
+  private readonly camAim = new Vector3(...VIEWS.front.aim);
   private readonly camPosGoal = this.camPos.clone();
   private readonly camAimGoal = this.camAim.clone();
   private readonly box = new Box3();
@@ -66,15 +59,15 @@ export class Figure {
   }
 
   /** Show an animation, mirrored for a right-side move. */
-  show(anim: AnimName, side: Side = 1): void {
-    this.anim = anim;
+  show(animation: Animation, side: Side = 1): void {
+    this.animation = animation;
     this.side = side;
-    const view = CAMERAS[anim];
+    const view = VIEWS[animation.view ?? "front"];
     this.camPosGoal.set(view.pos[0] * (side < 0 ? -1 : 1), view.pos[1], view.pos[2]);
     this.camAimGoal.set(...view.aim);
   }
 
-  /** Supply the 0..1 position within the current repetition. */
+  /** Supply the time within the current move, in reps (fractional, unbounded). */
   drive(phase: () => number): void {
     this.phase = phase;
   }
@@ -113,7 +106,7 @@ export class Figure {
     this.rig = buildRig();
     scene.add(this.rig.carrier);
     this.scene = scene;
-    this.apply(POSES[this.anim](0, this.side));
+    this.apply(NEUTRAL);
     return true;
   }
 
@@ -121,9 +114,8 @@ export class Figure {
     if (!this.running || !this.renderer || !this.scene || !this.camera) return;
     requestAnimationFrame(this.frame);
 
-    const p = this.phase();
     try {
-      this.apply(POSES[this.anim]((((p % 1) + 1) % 1), this.side));
+      this.apply(sample(this.animation, this.phase(), this.side));
       this.ground();
     } catch {
       /* a bad pose must not kill the render loop */
@@ -136,10 +128,9 @@ export class Figure {
     this.renderer.render(this.scene, this.camera);
   };
 
-  private apply(pose: Pose): void {
+  private apply(q: FullPose): void {
     const rig = this.rig;
     if (!rig) return;
-    const q = { ...NEUTRAL, ...pose };
 
     rig.carrier.position.set(q.x, q.y, q.z);
     rig.carrier.rotation.set(0, q.yaw, 0);
@@ -148,7 +139,7 @@ export class Figure {
     rig.chest.rotation.set(...q.chest);
     rig.neck.rotation.set(...q.neck);
 
-    // The right limbs mirror the left, so y and z rotations flip.
+    // The right limbs mirror the left, so twist and side rotations flip.
     rig.armL.rotation.set(q.armL[0], q.armL[1], q.armL[2]);
     rig.armR.rotation.set(q.armR[0], -q.armR[1], -q.armR[2]);
     rig.elbL.rotation.set(q.elbL, 0, 0);
@@ -164,7 +155,7 @@ export class Figure {
     const rig = this.rig;
     if (!rig) return;
     rig.carrier.updateMatrixWorld(true);
-    const mode = GROUNDING[this.anim];
+    const mode = this.animation.ground ?? "feet";
     if (mode === "none") return;
     if (mode === "all") {
       this.box.setFromObject(rig.carrier);

@@ -1,23 +1,20 @@
-// Measures how far the figure actually travels over one repetition, using the
-// app's own pose functions and rig, so "the animation doesn't move" can be
-// answered in centimetres instead of impressions.
+// Measures how far the figure actually travels over one loop of every move,
+// using the app's own animations and rig, so "the animation doesn't move" can
+// be answered in centimetres instead of impressions. Also checks that each
+// loop closes — a jump between the end of a rep and the start of the next is
+// exactly what makes an animation look broken.
+//
+//   node --experimental-strip-types scripts/pose-range.ts
 import { Box3, Object3D, Vector3 } from "three";
-import { GROUNDING, POSES, type Pose } from "../src/figure/poses.ts";
-import { buildRig } from "../src/figure/skeleton.ts";
-import type { AnimName } from "../src/types.ts";
-
-const NEUTRAL = {
-  x: 0, y: 0.95, z: 0, yaw: 0, pitch: 0, roll: 0,
-  spine: [0, 0, 0], chest: [0, 0, 0], neck: [0, 0, 0],
-  armL: [0, 0, 0], armR: [0, 0, 0], elbL: 0, elbR: 0,
-  hipL: [0, 0, 0], hipR: [0, 0, 0], kneeL: 0, kneeR: 0,
-} as const;
+import { ROUTINE } from "../src/data/routine";
+import { sample, type FullPose } from "../src/figure/pose";
+import { buildRig } from "../src/figure/skeleton";
+import type { Move } from "../src/types";
 
 const rig = buildRig();
 const box = new Box3();
 
-function apply(pose: Pose) {
-  const q = { ...NEUTRAL, ...pose } as Required<Pose>;
+function apply(q: FullPose) {
   rig.carrier.position.set(q.x, q.y, q.z);
   rig.carrier.rotation.set(0, q.yaw, 0);
   rig.root.rotation.set(q.pitch, 0, q.roll);
@@ -34,9 +31,9 @@ function apply(pose: Pose) {
   rig.kneeR.rotation.set(q.kneeR, 0, 0);
 }
 
-function ground(anim: AnimName) {
+function ground(move: Move) {
   rig.carrier.updateMatrixWorld(true);
-  const mode = GROUNDING[anim];
+  const mode = move.animation.ground ?? "feet";
   if (mode === "none") return;
   if (mode === "all") box.setFromObject(rig.carrier);
   else {
@@ -48,30 +45,44 @@ function ground(anim: AnimName) {
 }
 
 const world = (o: Object3D) => o.getWorldPosition(new Vector3());
+const span = (v: number[]) => (Math.max(...v) - Math.min(...v)) * 100;
+/** Largest distance any one point travels — samples alternate left/right. */
+const travel = (v: Vector3[]) => {
+  let max = 0;
+  for (const side of [0, 1]) {
+    const pts = v.filter((_, i) => i % 2 === side);
+    for (const a of pts) for (const b of pts) max = Math.max(max, a.distanceTo(b));
+  }
+  return max * 100;
+};
 
-console.log("anim        headY(cm)  hipY(cm)  handL travel(cm)  footL travel(cm)");
-for (const anim of Object.keys(POSES) as AnimName[]) {
-  const head: number[] = [], hip: number[] = [];
-  const hand: Vector3[] = [], foot: Vector3[] = [];
-  for (let i = 0; i < 48; i++) {
-    apply(POSES[anim](i / 48, 1));
-    ground(anim);
+console.log("move                              head↕   hips↕   hand   foot   loop-gap");
+for (const move of ROUTINE.moves) {
+  const cycle = move.animation.cycle ?? 1;
+  const head: number[] = [], hip: number[] = [], hand: Vector3[] = [], foot: Vector3[] = [];
+  const steps = 48 * cycle;
+  for (let i = 0; i < steps; i++) {
+    apply(sample(move.animation, (i / steps) * cycle, move.side ?? 1));
+    ground(move);
     head.push(world(rig.neck).y);
     hip.push(world(rig.root).y);
-    hand.push(world(rig.elbL).clone());
-    foot.push(world(rig.footL).clone());
+    // Whichever side is working — a mirrored move works the right.
+    hand.push(world(rig.elbL).clone(), world(rig.elbR).clone());
+    foot.push(world(rig.footL).clone(), world(rig.footR).clone());
   }
-  const span = (v: number[]) => (Math.max(...v) - Math.min(...v)) * 100;
-  const travel = (v: Vector3[]) => {
-    let max = 0;
-    for (const a of v) for (const b of v) max = Math.max(max, a.distanceTo(b));
-    return max * 100;
-  };
+  // Does the loop close? Compare a hair before its end with a hair after its start.
+  apply(sample(move.animation, cycle - 0.001, move.side ?? 1)); ground(move);
+  const endHand = world(rig.elbL), endHead = world(rig.neck);
+  apply(sample(move.animation, 0.001, move.side ?? 1)); ground(move);
+  const gap = Math.max(endHand.distanceTo(world(rig.elbL)), endHead.distanceTo(world(rig.neck))) * 100;
+
   console.log(
-    anim.padEnd(11),
-    span(head).toFixed(1).padStart(8),
-    span(hip).toFixed(1).padStart(9),
-    travel(hand).toFixed(1).padStart(16),
-    travel(foot).toFixed(1).padStart(16),
+    move.name.padEnd(32),
+    (span(head).toFixed(1) + "cm").padStart(7),
+    (span(hip).toFixed(1) + "cm").padStart(7),
+    (travel(hand).toFixed(0) + "cm").padStart(6),
+    (travel(foot).toFixed(0) + "cm").padStart(6),
+    (gap.toFixed(1) + "cm").padStart(9),
+    gap > 2 ? "  <- jumps" : "",
   );
 }
