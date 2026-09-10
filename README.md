@@ -26,7 +26,7 @@ npm run typecheck
 
 The build is a progressive web app: a service worker precaches every asset — HTML, JS, CSS and fonts — so once it has been opened with a connection it runs with no network at all. Updates are picked up silently on the next load.
 
-The whole app, three.js included, is one JavaScript file on purpose. It used to lazy-load the 3D figure as a separate chunk, and that broke on every deploy: the service worker updates itself immediately and drops the previous build's chunks, so a page that was already open would ask for a chunk that no longer existed and lose its figure until the next open. One payload means an open page always has all the code it will need. `public/assets/figure-C29d5iuX.js` is the last lazy chunk, kept for one deploy so pages open during the switch still find it — delete it in the deploy after.
+The whole app, three.js included, is one JavaScript file on purpose. It used to lazy-load the 3D figure as a separate chunk, and that broke on every deploy: the service worker updates itself immediately and drops the previous build's chunks, so a page that was already open would ask for a chunk that no longer existed and lose its figure until the next open. One payload means an open page always has all the code it will need.
 
 On Chromium the home screen shows an **Install on this device** button when the browser reports the app is installable; on iOS use Share → Add to Home Screen, which Safari offers instead. Installed, it launches standalone in portrait with no browser chrome.
 
@@ -116,6 +116,10 @@ node scripts/run.mjs scripts/pose-range.ts
 It prints how far the head, hips, hands and feet travel over one loop of every move, and whether the loop closes. Anything with only a couple of centimetres of travel will look frozen at this canvas size; anything flagged `jumps` will visibly snap once a rep.
 
 Rest between moves (`transition`), the countdown before the first move (`prep`) and the pace options are in `src/config.ts`.
+
+## Checking the figure
+
+`npm run dev` also serves **`/turntable.html`**: the figure from eight angles at once, for any move at any moment in a rep. It exists because front and back were once indistinguishable — no face, no chest, a mirror-image silhouette. Anything that changes the model or a pose should be looked at there before it ships, at 0° and 180° especially. It is a dev page only; the production build bundles `index.html` alone.
 
 ## Wording
 
