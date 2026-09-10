@@ -24,6 +24,20 @@ export const DEFAULT_SPEED = 0.7;
 
 export type Speed = (typeof SPEEDS)[number];
 
+/**
+ * Speaking rates, where 1 is the engine's own normal speed. Separated because
+ * a counted rep and a countdown number want different pacing — and because if
+ * a device speaks too fast or too slow, this is the one place to change.
+ */
+export const SPEECH = {
+  /** The move announcement at the start of a rest. */
+  announce: 1,
+  /** "3", "2", "1" and "Los" — a touch under normal so they read as beats. */
+  countdown: 0.9,
+  /** Rep numbers called out during a move. */
+  count: 1,
+} as const;
+
 /** Background gradient, interpolated from night (start) to morning (finish). */
 export const SKY = {
   topStart: [11, 22, 32],

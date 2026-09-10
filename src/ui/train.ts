@@ -1,4 +1,4 @@
-import { SKY, TIMING } from "../config";
+import { SKY, SPEECH, TIMING } from "../config";
 import { COPY } from "../copy";
 import { clock } from "../core/format";
 import type { Session, SessionEvents } from "../core/session";
@@ -66,6 +66,9 @@ export function createTrainScreen(opts: {
       clicked.add(r.rep);
       metronome.clickAt(r.at, r.spoken || r.last);
     }
+    // Only when the voice is off. With speech on, the number is already the
+    // beat, and a click landing on the same instant reads as a second voice.
+    if (voice.enabled) return;
     for (const c of active.upcomingCountdown(TIMING.clickLookahead)) {
       if (clicked.has(-c.secondsLeft)) continue;
       clicked.add(-c.secondsLeft);
@@ -82,7 +85,9 @@ export function createTrainScreen(opts: {
   function bind(active: Session): void {
     unsubscribe = [
       active.on("phase", ({ phase, isFirst }) => {
-        voice.cancel();
+        // No bare cancel here: sayNow() clears and then speaks on the next
+        // task, so nothing is ever handed to the engine while it is still
+        // shutting down the line before it.
         dropClicks();
         moveName.textContent = phase.move.name;
         figure.show(phase.move.animation, phase.move.side ?? 1);
@@ -93,27 +98,35 @@ export function createTrainScreen(opts: {
           phaseLabel.textContent = restLabel(isFirst);
           target.textContent = "";
           sub.textContent = COPY.restSub(phase.move.reps, phase.move.sub);
-          voice.say(COPY.spoken.announce(phase.move.name, phase.move.reps));
+          // The very first announcement queues instead of clearing: the only
+          // thing ahead of it is the silent primer that unlocked speech, and
+          // on iOS cancelling that is not worth the risk.
+          const announce = COPY.spoken.announce(phase.move.name, phase.move.reps);
+          if (isFirst) voice.say(announce, SPEECH.announce);
+          else voice.sayNow(announce, SPEECH.announce);
         } else {
           figure.drive(() => active.repTime());
           phaseLabel.textContent = "";
           target.textContent = COPY.target(phase.move.reps);
           sub.textContent = phase.move.sub;
-          voice.say(COPY.spoken.go, { interrupt: true });
+          voice.sayNow(COPY.spoken.go, SPEECH.countdown);
           scheduleClicks(active);
         }
       }),
 
       active.on("countdown", ({ secondsLeft }) => {
         count.textContent = String(secondsLeft);
-        // The number must land on its second, even if the move's name is
-        // still being read out.
-        if (secondsLeft <= 3 && secondsLeft > 0) voice.say(String(secondsLeft), { interrupt: true });
+        if (secondsLeft > 3 || secondsLeft <= 0) return;
+        // Clear the announcement once, at "3" — three seconds from the move,
+        // where a cut can't be heard against a beat. "2" and "1" then queue
+        // behind a word that is long finished.
+        if (secondsLeft === 3) voice.sayNow(String(secondsLeft), SPEECH.countdown);
+        else voice.say(String(secondsLeft), SPEECH.countdown);
       }),
 
       active.on("rep", ({ rep, spoken, last }) => {
         beat(rep);
-        if (spoken && !last) voice.say(String(rep), { rate: 1.05 });
+        if (spoken && !last) voice.say(String(rep), SPEECH.count);
         if (last) voice.say(COPY.spoken.lastOne);
       }),
 

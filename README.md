@@ -121,6 +121,17 @@ Rest between moves (`transition`), the countdown before the first move (`prep`) 
 
 `npm run dev` also serves **`/turntable.html`**: the figure from eight angles at once, for any move at any moment in a rep. It exists because front and back were once indistinguishable — no face, no chest, a mirror-image silhouette. Anything that changes the model or a pose should be looked at there before it ships, at 0° and 180° especially. It is a dev page only; the production build bundles `index.html` alone.
 
+## Speech
+
+Speaking rates live in `SPEECH` in `src/config.ts` — one number each for the move announcement, the countdown, and the rep counts. If a device speaks too fast or too slow, that is the place to change it.
+
+Two rules the speech code follows, both learned from output that came out garbled:
+
+- **Never hand an utterance to the engine in the same task as a `cancel()`.** `cancel()` takes effect on the engine's own schedule, so speaking immediately after it produces clipped or rushed audio. `Voice.sayNow()` clears, yields, and speaks on the next task. Everything else queues normally.
+- **Never cut a line close to the beat it belongs to.** The announcement is cleared once, three seconds before the move, so "3", "2", "1" and "Los" are never interrupted mid-word.
+
+The countdown also has a click on each beat, but only when the voice is switched off — with speech on, the number *is* the beat, and a click on the same instant reads as a second voice.
+
 ## Wording
 
 Labels that never change are German in `index.html`. Anything assembled from a number or a move name goes through `src/copy.ts`, and spoken cues go out as `de-DE`.
