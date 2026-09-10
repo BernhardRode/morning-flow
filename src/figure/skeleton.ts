@@ -6,6 +6,8 @@ import {
 /** Warm skin, dark shorts and shoes — the app's own palette, worn. */
 const SKIN = 0xe2d4bf;
 const CLOTH = 0x1b2e34;
+const HAIR = 0x33281e;
+const EYE = 0x1c1c1c;
 const FLOOR = 0x1a2b31;
 
 /**
@@ -36,6 +38,8 @@ interface Segment {
 
 const skin = new MeshStandardMaterial({ color: SKIN, roughness: 0.72, metalness: 0 });
 const cloth = new MeshStandardMaterial({ color: CLOTH, roughness: 0.95, metalness: 0 });
+const hair = new MeshStandardMaterial({ color: HAIR, roughness: 0.85, metalness: 0 });
+const eye = new MeshStandardMaterial({ color: EYE, roughness: 0.35, metalness: 0 });
 
 /**
  * A limb segment: a tapered shaft with a rounded cap at each end, all in one
@@ -82,6 +86,24 @@ function buildArm(chest: Object3D, sign: 1 | -1): { arm: Group; elbow: Group } {
   return { arm: upper.node, elbow: fore.node };
 }
 
+/**
+ * A shoe, not a block: heel behind the ankle, instep, and a rounded toe well
+ * out in front. From any angle it says which way the figure is facing.
+ */
+function buildFoot(): Group {
+  const foot = new Group();
+  const sole = new Mesh(new BoxGeometry(0.085, 0.04, 0.19), cloth);
+  sole.position.set(0, -0.02, 0.045);
+  const toe = ellipsoid(0.042, 0.026, 0.055, cloth);
+  toe.position.set(0, -0.016, 0.135);
+  const heel = ellipsoid(0.04, 0.032, 0.04, cloth);
+  heel.position.set(0, -0.012, -0.04);
+  const instep = ellipsoid(0.043, 0.038, 0.06, cloth);
+  instep.position.set(0, 0.006, 0.01);
+  foot.add(sole, toe, heel, instep);
+  return foot;
+}
+
 function buildLeg(root: Object3D, sign: 1 | -1): { hip: Group; knee: Group; foot: Object3D } {
   const socket = anchor(sign * 0.095, -0.05, 0);
   root.add(socket);
@@ -93,8 +115,7 @@ function buildLeg(root: Object3D, sign: 1 | -1): { hip: Group; knee: Group; foot
   thigh.node.add(shortsLeg);
   const shin = segment(0.42, 0.058, 0.04);
   thigh.end.add(shin.node);
-  const foot = new Mesh(new BoxGeometry(0.085, 0.055, 0.24), cloth);
-  foot.position.set(0, -0.0275, 0.06);
+  const foot = buildFoot();
   shin.end.add(foot);
   return { hip: thigh.node, knee: shin.node, foot };
 }
@@ -139,6 +160,12 @@ export function buildRig(): Rig {
   const cap = ellipsoid(0.165, 0.06, 0.122);
   cap.position.y = 0.28;
   chest.add(cap);
+  // Pectorals, proud of the ribcage: front and back stop being mirror images.
+  for (const sign of [1, -1] as const) {
+    const pec = ellipsoid(0.085, 0.038, 0.042);
+    pec.position.set(sign * 0.071, 0.183, 0.079);
+    chest.add(pec);
+  }
   for (const sign of [1, -1] as const) {
     const shoulder = new Mesh(new SphereGeometry(0.062, 18, 14), skin);
     shoulder.position.set(sign * 0.19, 0.25, 0);
@@ -151,9 +178,30 @@ export function buildRig(): Rig {
   const throat = new Mesh(new CylinderGeometry(0.05, 0.056, 0.1, 16, 1, true), skin);
   throat.position.y = 0.04;
   neck.add(throat);
-  const head = ellipsoid(0.1, 0.125, 0.112);
+  /**
+   * The head carries the strongest cue for which way the figure is facing:
+   * hair over the crown and back, a face on the front. The hair is a slightly
+   * larger dome pushed backwards, so it only breaks the surface at the top,
+   * sides and back and leaves the face bare — no cutting required.
+   */
+  const head = new Object3D();
   head.position.set(0, 0.2, 0.012);
   neck.add(head);
+  head.add(ellipsoid(0.1, 0.125, 0.112));
+
+  const mop = ellipsoid(0.106, 0.129, 0.114, hair);
+  mop.position.set(0, 0.006, -0.024);
+  head.add(mop);
+
+  for (const sign of [1, -1] as const) {
+    const iris = ellipsoid(0.016, 0.018, 0.011, eye);
+    iris.position.set(sign * 0.037, 0.016, 0.102);
+    head.add(iris);
+  }
+
+  const nose = ellipsoid(0.016, 0.021, 0.03);
+  nose.position.set(0, -0.012, 0.108);
+  head.add(nose);
 
   const left = buildArm(chest, 1);
   const right = buildArm(chest, -1);
